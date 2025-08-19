@@ -1,0 +1,9 @@
+Click en "Go live" ---> levanta el index.html
+
+-> API + swagger
+python -m uvicorn main:app --reload
+http://127.0.0.1:8000/docs
+
+-> Vite React
+npm i
+npm run dev

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Rutinas de Entrenamiento</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+  </head>
+  <body>
+    <header>
+      <div style="display: flex;">
+        <lottie-player          
+          src="../pushups.json"
+          background="transparent"
+          speed="1"
+          style="width: 50px; height: 50px"
+          autoplay
+          loop
+        >
+        </lottie-player>
+        <h1>FASTRAIN App</h1>
+      </div>
+
+      <nav>
+        <button id="btn-login">Login</button>
+        <button id="btn-register">Registrarse</button>
+        <button id="btn-perfil" class="oculto">Mi perfil</button>
+        <button type="submit" id="btn-crear-rutina" class="oculto">
+          Crear rutina
+        </button>
+        <button id="btn-logout" class="oculto">Cerrar sesión</button>
+      </nav>
+    </header>
+
+    <main>
+      <!-- SECCIÓN: LISTA DE RUTINAS -->
+      <section id="lista-rutinas">
+        <h2>Rutinas disponibles</h2>
+        <input type="text" id="buscador" placeholder="Buscar por nombre" />
+        <button id="btn-buscar">🔍 Buscar</button>
+        <ul id="rutinas"></ul>
+      </section>
+
+      <!-- SECCIÓN: DETALLE DE RUTINA -->
+      <section id="detalle-rutina" class="oculto">
+        <div id="detalle-contenido"></div>
+        <button id="volver">⬅ Volver</button>
+      </section>
+
+      <!-- SECCIÓN: PERFIL -->
+      <section id="seccion-perfil" class="oculto">
+        <div id="datos-usuario"></div>
+        <h3><br>Mis rutinas</h3>
+        <ul id="lista-rutinas-usuario"></ul>
+        <button id="btn-volver-inicio">⬅ Volver</button>
+      </section>
+
+      <!-- SECCIÓN: LOGIN -->
+      <section id="form-login" class="oculto">
+        <h2>Iniciar sesión</h2>
+        <form id="login-form">
+          <input type="email" id="login-email" placeholder="Email" required />
+          <input
+            type="password"
+            id="login-pass"
+            placeholder="Contraseña"
+            required
+          />
+          <button type="submit">Entrar</button>
+        </form>
+      </section>
+
+      <!-- SECCIÓN: REGISTRO -->
+      <section id="form-register" class="oculto">
+        <h2>Registro de usuario</h2>
+        <form id="register-form">
+          <input type="text" id="reg-nombre" placeholder="Nombre" required />
+          <input type="email" id="reg-email" placeholder="Email" required />
+          <input
+            type="text"
+            id="reg-telefono"
+            placeholder="Teléfono"
+            required
+          />
+          <input
+            type="password"
+            id="reg-pass"
+            placeholder="Contraseña"
+            required
+          />
+          <button type="submit">Registrarse</button>
+        </form>
+      </section>
+
+      <!-- SECCIÓN: CREAR RUTINA -->
+      <section id="form-crear-rutina" class="oculto">
+        <h2>Crear nueva rutina</h2>
+        <form id="crear-rutina-form">
+          <input
+            type="text"
+            id="nombre-rutina"
+            placeholder="Nombre de la rutina"
+            required
+          />
+          <textarea
+            id="descripcion-rutina"
+            placeholder="Descripción"
+            required
+          ></textarea>
+          <select id="nivel-rutina" required>
+            <option value="">Nivel</option>
+            <option value="principiante">Principiante</option>
+            <option value="intermedio">Intermedio</option>
+            <option value="avanzado">Avanzado</option>
+          </select>
+
+          <h3>Selecciona ejercicios</h3>
+          <select id="selector-ejercicios" multiple size="8" required>
+            <!-- Se llenará dinámicamente desde main.js -->
+          </select>
+
+          <button type="submit">Crear rutina</button>
+          <button type="button" id="volver-inicio-desde-rutina">
+            ⬅ Volver
+          </button>
+        </form>
+      </section>
+    </main>
+
+    <script src="main.js"></script>
+  </body>
+</html>

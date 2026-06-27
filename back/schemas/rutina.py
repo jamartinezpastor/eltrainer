@@ -1,11 +1,12 @@
 from typing import List, Optional
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel
 from datetime import datetime
 from schemas.ejercicio import EjercicioRespuesta
 
 class RutinaCrearSimple(BaseModel):
     nombre: str
-    descripcion: Optional[str]
+    descripcion: Optional[str] = None
     nivel: str
     # usuarioId: int
     ejerciciosIds: List[int]

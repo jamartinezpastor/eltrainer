@@ -1,43 +1,69 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, User, Mail, Phone, Target, Trophy } from "lucide-react";
+import {
+  ArrowLeft,
+  User,
+  Mail,
+  Phone,
+  Target,
+  Trophy,
+  IdCard,
+} from "lucide-react";
+import { useUser } from "@/hooks/UserContext";
+
+const API_URL = "http://127.0.0.1:8000/api";
 
 interface UserProfileProps {
   onBack: () => void;
 }
 
-interface UserRoutine {
-  id: string;
-  name: string;
-  level: "principiante" | "intermedio" | "avanzado";
-  exercises: number;
-  completed: number;
+interface Ejercicio {
+  id: number;
+  nombre: string;
+  grupoMuscular: string;
+  series: number;
+  repeticiones: number;
 }
 
-const mockUser = {
-  name: "Juan Pérez",
-  email: "juan@example.com",
-  phone: "+34 600 123 456",
-  level: "intermedio",
-  totalWorkouts: 24,
-  streak: 7,
-};
-
-const mockUserRoutines: UserRoutine[] = [
-  { id: "1", name: "Mi Rutina Matutina", level: "intermedio", exercises: 6, completed: 18 },
-  { id: "2", name: "Fuerza y Resistencia", level: "avanzado", exercises: 8, completed: 12 },
-  { id: "3", name: "Cardio Intenso", level: "intermedio", exercises: 5, completed: 25 },
-];
+interface UserRutina {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+  nivel: "principiante" | "intermedio" | "avanzado";
+  usuarioId?: number;
+  ejercicios: Ejercicio[];
+}
 
 export const UserProfile = ({ onBack }: UserProfileProps) => {
-  const getLevelColor = (level: string) => {
-    switch (level) {
-      case "principiante": return "secondary";
-      case "intermedio": return "default";
-      case "avanzado": return "destructive";
-      default: return "secondary";
+  const { user, logout } = useUser();
+  const [rutinas, setRutinas] = useState<UserRutina[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    fetch(`${API_URL}/usuarios/${user.id}/rutinas`)
+      .then((res) => res.json())
+      .then((data) => {
+        setRutinas(data);
+      })
+      .catch((err) => console.error("Error cargando rutinas", err))
+      .finally(() => setLoading(false));
+  }, [user?.id]);
+
+  if (!user) return <p>No hay usuario logueado</p>;
+
+  const getLevelColor = (nivel: string) => {
+    switch (nivel) {
+      case "principiante":
+        return "secondary";
+      case "intermedio":
+        return "default";
+      case "avanzado":
+        return "destructive";
+      default:
+        return "secondary";
     }
   };
 
@@ -63,71 +89,60 @@ export const UserProfile = ({ onBack }: UserProfileProps) => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3">
+              <IdCard className="h-4 w-4 text-muted-foreground" />
+              <span>{user.name}</span>
+            </div>
+            <div className="flex items-center gap-3">
               <Mail className="h-4 w-4 text-muted-foreground" />
-              <span>{mockUser.email}</span>
+              <span>{user.email}</span>
             </div>
             <div className="flex items-center gap-3">
               <Phone className="h-4 w-4 text-muted-foreground" />
-              <span>{mockUser.phone}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <Target className="h-4 w-4 text-muted-foreground" />
-              <span>Nivel: </span>
-              <Badge variant={getLevelColor(mockUser.level)}>
-                {mockUser.level.charAt(0).toUpperCase() + mockUser.level.slice(1)}
-              </Badge>
+              <span>{user.phone}</span>
             </div>
           </CardContent>
         </Card>
 
-        {/* Stats Card */}
-        <Card className="shadow-elegant">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-fitness-orange">
-              <Trophy className="h-5 w-5" />
-              Estadísticas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 bg-gradient-subtle rounded-lg">
-                <div className="text-2xl font-bold text-primary">{mockUser.totalWorkouts}</div>
-                <div className="text-sm text-muted-foreground">Entrenamientos</div>
-              </div>
-              <div className="text-center p-4 bg-gradient-subtle rounded-lg">
-                <div className="text-2xl font-bold text-fitness-red">{mockUser.streak}</div>
-                <div className="text-sm text-muted-foreground">Días seguidos</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* User Routines Card */}
+        {/* User rutinas Card */}
         <Card className="shadow-elegant">
           <CardHeader>
             <CardTitle className="text-fitness-orange">Mis Rutinas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {mockUserRoutines.map((routine) => (
-                <div
-                  key={routine.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:shadow-md transition-shadow"
-                >
-                  <div className="space-y-1">
-                    <h4 className="font-medium">{routine.name}</h4>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>{routine.exercises} ejercicios</span>
-                      <span>•</span>
-                      <span>{routine.completed} completados</span>
+            {loading ? (
+              <p>Cargando rutinas...</p>
+            ) : rutinas.length === 0 ? (
+              <p>Este usuario no tiene rutinas guardadas todavía.</p>
+            ) : (
+              <div className="space-y-4">
+                {rutinas.map((rutina) => (
+                  <div
+                    key={rutina.id}
+                    className="flex items-center justify-between p-4 border rounded-lg transition-colors hover:shadow-md hover:bg-fitness-orange-light/20 hover:border-fitness-orange-light hover:border-1 hover:cursor-pointer"
+                  >
+                    <div className="space-y-1 ">
+                      <h4 className="font-medium">
+                        {rutina.id} - {rutina.nombre}
+                      </h4>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground  ">
+                        <ul className="text-xs text-muted-foreground list-disc pl-4 ">
+                          {rutina.ejercicios.map((e) => (
+                            <li key={e.id}>
+                              <b>{e.nombre}</b> - Grupo muscular{" "}
+                              {e.grupoMuscular} – {e.series} series de{" "}
+                              {e.repeticiones} repeticiones
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
+                    <Badge variant={getLevelColor(rutina.nivel)}>
+                      {rutina.nivel}
+                    </Badge>
                   </div>
-                  <Badge variant={getLevelColor(routine.level)}>
-                    {routine.level}
-                  </Badge>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

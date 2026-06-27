@@ -5,33 +5,77 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { LogIn } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/hooks/UserContext";
+
+const API_URL = "http://127.0.0.1:8000/api";
 
 interface LoginFormProps {
-  onLogin: () => void;
+  onLogin: (success: boolean) => void;
   onSwitchToRegister: () => void;
 }
 
 export const LoginForm = ({ onLogin, onSwitchToRegister }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { setUser } = useUser();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Simulate login
-    if (email && password) {
-      toast({
-        title: "¡Bienvenido!",
-        description: "Has iniciado sesión exitosamente",
-      });
-      onLogin();
-    } else {
+
+    if (!email || !password) {
       toast({
         title: "Error",
         description: "Por favor completa todos los campos",
         variant: "destructive",
       });
+      onLogin(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/usuarios/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, contrasena: password }),
+      });
+
+      if (!res.ok) {
+        // 400/401/etc
+        const msg = await res.text().catch(() => "");
+        throw new Error(msg || "Credenciales incorrectas");
+      }
+
+      const usuario = await res.json();
+
+      localStorage.setItem("token", usuario.access_token);
+      setUser({
+        id: usuario.id,
+        name: usuario.nombre,
+        email: usuario.email,
+        phone: usuario.telefono,
+        access_token: usuario.access_token,
+      });
+
+      // ÉXITO: ahora sí
+      toast({
+        title: "👋🏻 ¡Bienvenido!",
+        description: "Sesión iniciada exitosamente.",
+      });
+      onLogin(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      console.error(err);
+      toast({
+        title: "❌ Error al iniciar sesión",
+        description: /*err?.message ?? */ "Verifica tu nombre y contraseña.",
+        variant: "destructive",
+      });
+      onLogin(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,27 +97,27 @@ export const LoginForm = ({ onLogin, onSwitchToRegister }: LoginFormProps) => {
               <Input
                 id="email"
                 type="email"
-                placeholder="tu@email.com"
+                placeholder="correo@ejemplo.es"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-fitness-orange hover:bg-fitness-orange-light text-white"
               size="lg"
             >

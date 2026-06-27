@@ -53,13 +53,14 @@ All colors MUST be HSL.
     --fitness-red: 0 84% 60%;
     --fitness-red-dark: 0 72% 45%;
     --fitness-green: 142 71% 45%;
+    --fitness-green-light: 142 71% 70%;
     --fitness-blue: 217 91% 60%;
     
     /* Enhanced gradients */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--fitness-orange)));
     --gradient-energy: linear-gradient(135deg, hsl(var(--fitness-orange)), hsl(var(--fitness-red)));
     --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted)/0.3));
-    
+
     /* Enhanced shadows */
     --shadow-elegant: 0 10px 30px -10px hsl(var(--primary) / 0.3);
     --shadow-glow: 0 0 40px hsl(var(--fitness-orange) / 0.4);
@@ -132,3 +133,4 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+

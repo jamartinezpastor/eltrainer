@@ -1,18 +1,27 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Clock, User, Target, Play, CheckCircle } from "lucide-react";
+import { ArrowLeft, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 
-interface Exercise {
-  id: string;
-  name: string;
-  sets: number;
-  reps: string;
-  rest: string;
-  completed: boolean;
+const API_URL = "http://127.0.0.1:8000/api";
+
+interface Ejercicio {
+  id: number;
+  nombre: string;
+  grupoMuscular: string;
+  series: number;
+  repeticiones: number;
+}
+interface UserRutina {
+  id: number;
+  nombre: string;
+  descripcion?: string;
+  nivel: "principiante" | "intermedio" | "avanzado";
+  usuarioId?: number;
+  ejercicios: Ejercicio[];
 }
 
 interface RoutineDetailProps {
@@ -20,65 +29,108 @@ interface RoutineDetailProps {
   onBack: () => void;
 }
 
-const MOCK_ROUTINE = {
-  id: "1",
-  name: "Fuerza Total",
-  description: "Rutina completa para desarrollar fuerza en todo el cuerpo. Incluye ejercicios compuestos que trabajan múltiples grupos musculares para maximizar los resultados.",
-  level: "intermedio" as const,
-  duration: "45 min",
-  author: "Carlos Fitness",
-  exercises: [
-    { id: "1", name: "Sentadillas", sets: 4, reps: "12-15", rest: "90s", completed: false },
-    { id: "2", name: "Press de banca", sets: 4, reps: "8-10", rest: "120s", completed: false },
-    { id: "3", name: "Peso muerto", sets: 3, reps: "6-8", rest: "180s", completed: false },
-    { id: "4", name: "Dominadas", sets: 3, reps: "8-12", rest: "90s", completed: false },
-    { id: "5", name: "Press militar", sets: 3, reps: "10-12", rest: "90s", completed: false },
-    { id: "6", name: "Remo con barra", sets: 3, reps: "10-12", rest: "90s", completed: false },
-    { id: "7", name: "Dips", sets: 3, reps: "10-15", rest: "60s", completed: false },
-    { id: "8", name: "Plancha", sets: 3, reps: "30-60s", rest: "60s", completed: false },
-  ]
-};
-
 export const RoutineDetail = ({ routineId, onBack }: RoutineDetailProps) => {
-  const [exercises, setExercises] = useState<Exercise[]>(MOCK_ROUTINE.exercises);
-  const { toast } = useToast();
+  const { toast, dismiss } = useToast();
+  const [rutina, setRutina] = useState<UserRutina | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const startTimeRef = useRef<number | null>(null);
+  const toastIdRef = useRef<string | null>(null);
 
-  const getLevelColor = (level: string) => {
-    switch (level) {
-      case "principiante": return "secondary";
-      case "intermedio": return "default";
-      case "avanzado": return "destructive";
-      default: return "secondary";
+  useEffect(() => {
+    const controller = new AbortController();
+    const token = localStorage.getItem("token");
+    setLoading(true);
+    setError(null);
+
+    fetch(`${API_URL}/rutinas/${routineId}`.trim(), {
+      signal: controller.signal,
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
+      .then(async (res) => {
+        if (!res.ok)
+          throw new Error(
+            await res.text().catch(() => "Error cargando rutina")
+          );
+        return res.json();
+      })
+      .then((data: UserRutina) => setRutina(data))
+      .catch((err) => {
+        if (err.name !== "AbortError") {
+          console.error("Error cargando rutina", err);
+          setError("No se pudo cargar la rutina");
+        }
+      })
+      .finally(() => setLoading(false));
+
+    return () => controller.abort();
+  }, [routineId]);
+
+  const getLevelColor = (nivel: string) => {
+    switch (nivel) {
+      case "principiante":
+        return "secondary";
+      case "intermedio":
+        return "default";
+      case "avanzado":
+        return "destructive";
+      default:
+        return "secondary";
     }
   };
 
-  const toggleExerciseComplete = (exerciseId: string) => {
-    setExercises(prev => 
-      prev.map(ex => 
-        ex.id === exerciseId 
-          ? { ...ex, completed: !ex.completed }
-          : ex
-      )
-    );
-    
-    const exercise = exercises.find(ex => ex.id === exerciseId);
-    if (exercise && !exercise.completed) {
-      toast({
-        title: "¡Ejercicio completado!",
-        description: `Has completado ${exercise.name}`,
-      });
+  const stopWorkout = () => {
+    if (toastIdRef.current) {
+      dismiss(toastIdRef.current);
+      toastIdRef.current = null;
     }
-  };
-
-  const completedCount = exercises.filter(ex => ex.completed).length;
-  const progressPercentage = (completedCount / exercises.length) * 100;
-
-  const startWorkout = () => {
+    const elapsed = startTimeRef.current
+      ? Math.round((Date.now() - startTimeRef.current) / 1000)
+      : 0;
     toast({
-      title: "¡Entrenamiento iniciado!",
-      description: "¡A darle con todo! 💪",
+      title: "🏁 Entrenamiento finalizado",
+      description: `Duración total: ${elapsed}s`,
     });
   };
+
+  const startWorkout = () => {
+    startTimeRef.current = Date.now();
+
+    // Mostramos un único toast persistente con el cronómetro dentro
+    const { id } = toast({
+      duration: Infinity,
+      title: "⏱️ Entrenamiento en curso",
+      description: <TimerContent timer={0} />,
+      action: (
+        <ToastAction altText="Detener" onClick={stopWorkout}>
+          Detener
+        </ToastAction>
+      ),
+    });
+    toastIdRef.current = id;
+  };
+
+  useEffect(() => {
+    return () => {
+      if (toastIdRef.current) {
+        dismiss(toastIdRef.current);
+      }
+    };
+  }, []);
+
+  if (loading)
+    return (
+      <div className="text-center text-muted-foreground">
+        Cargando rutina...
+      </div>
+    );
+  if (error) return <div className="text-center text-destructive">{error}</div>;
+  if (!rutina)
+    return (
+      <div className="text-center text-muted-foreground">
+        Rutina no encontrada
+      </div>
+    );
 
   return (
     <div className="animate-fade-in">
@@ -88,7 +140,7 @@ export const RoutineDetail = ({ routineId, onBack }: RoutineDetailProps) => {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-          {MOCK_ROUTINE.name}
+          {rutina.nombre}
         </h2>
       </div>
 
@@ -97,42 +149,30 @@ export const RoutineDetail = ({ routineId, onBack }: RoutineDetailProps) => {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
-              <CardTitle className="text-2xl text-fitness-orange mb-2">
-                {MOCK_ROUTINE.name}
-              </CardTitle>
-              <p className="text-muted-foreground">{MOCK_ROUTINE.description}</p>
+              {rutina.descripcion && (
+                <p className="text-muted-foreground">{rutina.descripcion}</p>
+              )}
             </div>
-            <Badge variant={getLevelColor(MOCK_ROUTINE.level)} className="text-sm">
-              {MOCK_ROUTINE.level.charAt(0).toUpperCase() + MOCK_ROUTINE.level.slice(1)}
+            <Badge variant={getLevelColor(rutina.nivel)} className="text-sm">
+              {rutina.nivel.charAt(0).toUpperCase() + rutina.nivel.slice(1)}
             </Badge>
           </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-fitness-orange" />
-              <span className="text-sm">{MOCK_ROUTINE.duration}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-fitness-orange" />
-              <span className="text-sm">{MOCK_ROUTINE.author}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Target className="h-4 w-4 text-fitness-orange" />
-              <span className="text-sm">{exercises.length} ejercicios</span>
+            <div className="flex items-start gap-2 md:col-span-3">
+              <ul className="text-xs text-muted-foreground list-disc pl-4">
+                {rutina.ejercicios?.map((e) => (
+                  <li key={e.id}>
+                    <b>{e.nombre}</b> — Grupo muscular {e.grupoMuscular} –{" "}
+                    {e.series} series de {e.repeticiones} repeticiones
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 
-          {/* Progress */}
-          <div className="space-y-2 mb-4">
-            <div className="flex justify-between text-sm">
-              <span>Progreso del entrenamiento</span>
-              <span>{completedCount}/{exercises.length}</span>
-            </div>
-            <Progress value={progressPercentage} className="h-2" />
-          </div>
-
-          <Button 
+          <Button
             onClick={startWorkout}
             className="w-full bg-fitness-red hover:bg-fitness-red-dark text-white"
             size="lg"
@@ -142,47 +182,20 @@ export const RoutineDetail = ({ routineId, onBack }: RoutineDetailProps) => {
           </Button>
         </CardContent>
       </Card>
-
-      {/* Exercises List */}
-      <Card className="shadow-elegant">
-        <CardHeader>
-          <CardTitle className="text-fitness-orange">Ejercicios</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {exercises.map((exercise, index) => (
-              <div
-                key={exercise.id}
-                className={`flex items-center justify-between p-4 border rounded-lg transition-colors ${
-                  exercise.completed ? 'bg-fitness-green/10 border-fitness-green' : 'hover:bg-muted/50'
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-fitness-orange text-white text-sm font-bold flex items-center justify-center">
-                    {index + 1}
-                  </div>
-                  <div>
-                    <h4 className={`font-medium ${exercise.completed ? 'line-through text-muted-foreground' : ''}`}>
-                      {exercise.name}
-                    </h4>
-                    <div className="text-sm text-muted-foreground">
-                      {exercise.sets} series • {exercise.reps} reps • {exercise.rest} descanso
-                    </div>
-                  </div>
-                </div>
-                <Button
-                  variant={exercise.completed ? "default" : "outline"}
-                  size="icon"
-                  onClick={() => toggleExerciseComplete(exercise.id)}
-                  className={exercise.completed ? "bg-fitness-green hover:bg-fitness-green/80 text-white" : ""}
-                >
-                  <CheckCircle className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
+};
+
+// 👇 Este componente se re-renderiza cuando cambia `timer`
+const TimerContent = ({ timer }: { timer: number }) => {
+  const [time, setTime] = useState(timer);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTime((t) => t + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return <span>Tiempo: {time}s</span>;
 };

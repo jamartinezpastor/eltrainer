@@ -6,34 +6,63 @@ import { Label } from "@/components/ui/label";
 import { UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+const API_URL = "http://127.0.0.1:8000/api";
+
 interface RegisterFormProps {
-  onRegister: () => void;
+  onRegister: (sucess: boolean) => void;
   onSwitchToLogin: () => void;
 }
 
-export const RegisterForm = ({ onRegister, onSwitchToLogin }: RegisterFormProps) => {
+export const RegisterForm = ({
+  onRegister,
+  onSwitchToLogin,
+}: RegisterFormProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Simulate registration
-    if (name && email && phone && password) {
-      toast({
-        title: "¡Cuenta creada!",
-        description: `Bienvenido ${name}, tu cuenta ha sido creada exitosamente`,
-      });
-      onRegister();
-    } else {
+    if (!name || !email || !phone || !password) {
       toast({
         title: "Error",
         description: "Por favor completa todos los campos",
         variant: "destructive",
       });
+      onRegister(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/usuarios`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: name,
+          email,
+          telefono: phone,
+          contrasena: password,
+        }),
+      });
+      if (!res.ok) {
+        const msg = await res.text().catch(() => "");
+        throw new Error(msg || "No se pudo crear la cuenta");
+      }
+      toast({
+        title: "¡Cuenta creada!",
+        description: `Bienvenido ${name}, tu cuenta ha sido creada exitosamente`,
+      });
+      onRegister(true);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      toast({
+        title: "Error al registrarse",
+        description: err?.message ?? "Inténtalo de nuevo.",
+        variant: "destructive",
+      });
+      onRegister(false);
     }
   };
 
@@ -67,19 +96,19 @@ export const RegisterForm = ({ onRegister, onSwitchToLogin }: RegisterFormProps)
               <Input
                 id="email"
                 type="email"
-                placeholder="tu@email.com"
+                placeholder="correo@ejemplo.es"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="phone">Teléfono</Label>
               <Input
                 id="phone"
                 type="tel"
-                placeholder="+34 600 123 456"
+                placeholder="+34 123 456 789"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
@@ -91,15 +120,15 @@ export const RegisterForm = ({ onRegister, onSwitchToLogin }: RegisterFormProps)
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                placeholder="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </div>
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full bg-fitness-red hover:bg-fitness-red-dark text-white"
               size="lg"
             >

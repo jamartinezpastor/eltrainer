@@ -6,40 +6,39 @@ import { LoginForm } from "@/components/LoginForm";
 import { RegisterForm } from "@/components/RegisterForm";
 import { CreateRoutineForm } from "@/components/CreateRoutineForm";
 import { UserProfile } from "@/components/UserProfile";
+import { useUser } from "@/hooks/UserContext";
 
 type View = "routines" | "detail" | "login" | "register" | "create" | "profile";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>("routines");
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user, setUser } = useUser();
 
   const handleViewRoutine = (id: string) => {
     setSelectedRoutineId(id);
     setCurrentView("detail");
   };
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    setCurrentView("routines");
+  const handleLogin = (success: boolean) => {
+    if (success) {
+      setCurrentView("routines");
+    }
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
+    localStorage.removeItem("token");
+    setUser(null);
+    setSelectedRoutineId(null);
     setCurrentView("routines");
   };
 
   const renderContent = () => {
     switch (currentView) {
       case "detail":
-        return (
-          <RoutineDetail 
-            routineId={selectedRoutineId!} 
-            onBack={() => setCurrentView("routines")} 
-          />
-        );
+        return <RoutineDetail routineId={selectedRoutineId!} onBack={() => setCurrentView("routines")} />;
       case "login":
-        return <LoginForm onLogin={handleLogin} onSwitchToRegister={() => setCurrentView("register")} />;
+        return <LoginForm onLogin={(success: boolean) => handleLogin(success)} onSwitchToRegister={() => setCurrentView("register")} />;
       case "register":
         return <RegisterForm onRegister={handleLogin} onSwitchToLogin={() => setCurrentView("login")} />;
       case "create":
@@ -53,8 +52,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      <Header 
-        isLoggedIn={isLoggedIn}
+      <Header
+        isLoggedIn={Boolean(user)}
         onShowLogin={() => setCurrentView("login")}
         onShowRegister={() => setCurrentView("register")}
         onShowProfile={() => setCurrentView("profile")}
@@ -62,10 +61,8 @@ const Index = () => {
         onLogout={handleLogout}
         onShowRoutines={() => setCurrentView("routines")}
       />
-      
-      <main className="container mx-auto px-4 py-8">
-        {renderContent()}
-      </main>
+
+      <main className="container mx-auto px-4 py-8">{renderContent()}</main>
     </div>
   );
 };

@@ -1,8 +1,10 @@
+import os
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-SECRET_KEY = "no_pain_no_gain"
+# En producción define SECRET_KEY como variable de entorno (ej. openssl rand -hex 32)
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-insecure-key")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

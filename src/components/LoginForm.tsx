@@ -6,8 +6,7 @@ import { Label } from "@/components/ui/label";
 import { LogIn } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/UserContext";
-
-const API_URL = "http://127.0.0.1:8000/api";
+import { API_URL } from "@/lib/apiConfig";
 
 interface LoginFormProps {
   onLogin: (success: boolean) => void;

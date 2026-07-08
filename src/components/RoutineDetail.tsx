@@ -5,8 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-
-const API_URL = "http://127.0.0.1:8000/api";
+import { API_URL } from "@/lib/apiConfig";
 
 interface Ejercicio {
   id: number;

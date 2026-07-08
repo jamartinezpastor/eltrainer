@@ -1,0 +1,6 @@
+node_modules/
+dist/
+back/
+.git/
+*.db
+.env

@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from db import Base, engine, SessionLocal 
@@ -10,8 +11,11 @@ from models.ejercicio import Ejercicio
 
 # Creamos la instancia principal de la app FastAPI
 app = FastAPI(title="API eltrainer 💪🏋️ 2.0")
-# Configuramos CORS para permitir que el frontend acceda a la API
-app.add_middleware( CORSMiddleware, allow_origins=[ "http://127.0.0.1:5501","http://localhost:5501","http://127.0.0.1:8000","http://localhost:8000","http://127.0.0.1:8080","http://localhost:8080"], # Durante desarrollo, permitimos cualquier origen
+# Configuramos CORS para permitir que el frontend acceda a la API.
+# En producción define CORS_ORIGINS (lista separada por comas); en dev usa los localhost por defecto.
+default_origins = "http://127.0.0.1:5501,http://localhost:5501,http://127.0.0.1:8000,http://localhost:8000,http://127.0.0.1:8080,http://localhost:8080"
+origins = [o.strip() for o in os.environ.get("CORS_ORIGINS", default_origins).split(",") if o.strip()]
+app.add_middleware( CORSMiddleware, allow_origins=origins,
                    allow_credentials=True, allow_methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type", "Authorization"], )
 
 # Creamos las tablas automáticamente si no existen

@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { RoutineCard } from "@/components/RoutineCard";
 import { Search } from "lucide-react";
 import SplitText from "./ui/SplitText";
-
-const API_URL = "http://127.0.0.1:8000/api";
+import { API_URL } from "@/lib/apiConfig";
 
 interface Ejercicio {
   id: number;
@@ -90,7 +89,7 @@ export const RoutineList = ({ onViewRoutine }: RoutineListProps) => {
       <div className="text-center mb-8">
           <SplitText
             text="Rutinas Disponibles"
-            className="text-4xl font-bold mb-4 bg-gradient-primary bg-clip-text text-fitness-orange"
+            className="text-4xl font-bold mb-4 text-fitness-orange"
             delay={100}
             duration={0.6}
             ease="power3.out"

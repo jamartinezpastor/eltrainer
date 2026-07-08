@@ -10,8 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Plus, X, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/hooks/UserContext";
-
-const API_URL = "http://127.0.0.1:8000/api";
+import { API_URL } from "@/lib/apiConfig";
 
 // Se ajusta el formulario para CUMPLIR el esquema del backend:
 // RutinaCrearSimple => { nombre, descripcion?, nivel, ejerciciosIds: number[] }

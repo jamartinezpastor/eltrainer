@@ -5,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-const API_URL = "http://127.0.0.1:8000/api";
+import { API_URL } from "@/lib/apiConfig";
 
 interface RegisterFormProps {
   onRegister: (sucess: boolean) => void;

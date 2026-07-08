@@ -12,8 +12,7 @@ import {
   IdCard,
 } from "lucide-react";
 import { useUser } from "@/hooks/UserContext";
-
-const API_URL = "http://127.0.0.1:8000/api";
+import { API_URL } from "@/lib/apiConfig";
 
 interface UserProfileProps {
   onBack: () => void;

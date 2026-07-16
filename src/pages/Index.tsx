@@ -62,7 +62,12 @@ const Index = () => {
           />
         );
       case "profile":
-        return <UserProfile onBack={() => setCurrentView("routines")} />;
+        return (
+          <UserProfile
+            onBack={() => setCurrentView("routines")}
+            onEditRoutine={handleEditRoutine}
+          />
+        );
       default:
         return <RoutineList onViewRoutine={handleViewRoutine} />;
     }

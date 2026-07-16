@@ -5,6 +5,7 @@ import { RoutineCard } from "@/components/RoutineCard";
 import { Search } from "lucide-react";
 import SplitText from "./ui/SplitText";
 import { API_URL } from "@/lib/apiConfig";
+import { useUser } from "@/hooks/UserContext";
 
 interface Ejercicio {
   id: number;
@@ -28,6 +29,7 @@ interface RoutineListProps {
 }
 
 export const RoutineList = ({ onViewRoutine }: RoutineListProps) => {
+  const { user } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
   const [rutinas, setRutinas] = useState<UserRutina[]>([]);
   const [filteredRoutines, setFilteredRoutines] = useState<UserRutina[]>([]);
@@ -139,6 +141,7 @@ export const RoutineList = ({ onViewRoutine }: RoutineListProps) => {
                 key={rutina.id}
                 rutina={rutina}
                 onView={() => onViewRoutine(String(rutina.id))}
+                isOwn={user?.id !== undefined && rutina.usuarioId === user.id}
               />
             ))}
           </div>

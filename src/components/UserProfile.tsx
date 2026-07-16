@@ -16,6 +16,7 @@ import { API_URL } from "@/lib/apiConfig";
 
 interface UserProfileProps {
   onBack: () => void;
+  onEditRoutine: (id: string) => void;
 }
 
 interface Ejercicio {
@@ -36,7 +37,7 @@ interface UserRutina {
   ejercicios: Ejercicio[];
 }
 
-export const UserProfile = ({ onBack }: UserProfileProps) => {
+export const UserProfile = ({ onBack, onEditRoutine }: UserProfileProps) => {
   const { user, logout } = useUser();
   const [rutinas, setRutinas] = useState<UserRutina[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,6 +119,12 @@ export const UserProfile = ({ onBack }: UserProfileProps) => {
                 {rutinas.map((rutina) => (
                   <div
                     key={rutina.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onEditRoutine(String(rutina.id))}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") onEditRoutine(String(rutina.id));
+                    }}
                     className="flex items-center justify-between p-4 border rounded-lg transition-colors hover:shadow-md hover:bg-fitness-orange-light/20 hover:border-fitness-orange-light hover:border-1 hover:cursor-pointer"
                   >
                     <div className="space-y-1 ">

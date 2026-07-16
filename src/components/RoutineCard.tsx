@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, User, Target } from "lucide-react";
+import { Clock, User, Target, UserCheck } from "lucide-react";
 interface Ejercicio {
   id: number;
   nombre: string;
@@ -22,9 +22,10 @@ interface UserRutina {
 interface RoutineCardProps {
   rutina: UserRutina;
   onView: () => void;
+  isOwn?: boolean;
 }
 
-export const RoutineCard = ({ rutina, onView }: RoutineCardProps) => {
+export const RoutineCard = ({ rutina, onView, isOwn }: RoutineCardProps) => {
   const getLevelColor = (nivel: string) => {
     switch (nivel) {
       case "principiante":
@@ -41,11 +42,19 @@ export const RoutineCard = ({ rutina, onView }: RoutineCardProps) => {
   return (
     <Card className="shadow-elegant hover:shadow-glow transition-all duration-300 hover:scale-105 cursor-pointer group">
       <CardHeader>
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-2">
           <CardTitle className="text-lg group-hover:text-fitness-orange transition-colors">
             {rutina.nombre}
           </CardTitle>
-          <Badge variant={getLevelColor(rutina.nivel)}>{rutina.nivel}</Badge>
+          <div className="flex items-center gap-2 shrink-0">
+            {isOwn && (
+              <Badge variant="outline" className="border-fitness-orange text-fitness-orange gap-1">
+                <UserCheck className="h-3 w-3" />
+                Tuya
+              </Badge>
+            )}
+            <Badge variant={getLevelColor(rutina.nivel)}>{rutina.nivel}</Badge>
+          </div>
         </div>
         <p className="text-sm text-muted-foreground line-clamp-2">
           {rutina.descripcion}

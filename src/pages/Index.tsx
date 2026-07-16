@@ -8,7 +8,7 @@ import { CreateRoutineForm } from "@/components/CreateRoutineForm";
 import { UserProfile } from "@/components/UserProfile";
 import { useUser } from "@/hooks/UserContext";
 
-type View = "routines" | "detail" | "login" | "register" | "create" | "profile";
+type View = "routines" | "detail" | "login" | "register" | "create" | "edit" | "profile";
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<View>("routines");
@@ -18,6 +18,11 @@ const Index = () => {
   const handleViewRoutine = (id: string) => {
     setSelectedRoutineId(id);
     setCurrentView("detail");
+  };
+
+  const handleEditRoutine = (id: string) => {
+    setSelectedRoutineId(id);
+    setCurrentView("edit");
   };
 
   const handleLogin = (success: boolean) => {
@@ -36,13 +41,26 @@ const Index = () => {
   const renderContent = () => {
     switch (currentView) {
       case "detail":
-        return <RoutineDetail routineId={selectedRoutineId!} onBack={() => setCurrentView("routines")} />;
+        return (
+          <RoutineDetail
+            routineId={selectedRoutineId!}
+            onBack={() => setCurrentView("routines")}
+            onEdit={handleEditRoutine}
+          />
+        );
       case "login":
         return <LoginForm onLogin={(success: boolean) => handleLogin(success)} onSwitchToRegister={() => setCurrentView("register")} />;
       case "register":
         return <RegisterForm onRegister={handleLogin} onSwitchToLogin={() => setCurrentView("login")} />;
       case "create":
         return <CreateRoutineForm onBack={() => setCurrentView("routines")} />;
+      case "edit":
+        return (
+          <CreateRoutineForm
+            routineId={selectedRoutineId!}
+            onBack={() => setCurrentView("detail")}
+          />
+        );
       case "profile":
         return <UserProfile onBack={() => setCurrentView("routines")} />;
       default:

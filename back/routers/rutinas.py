@@ -47,9 +47,32 @@ def crear_rutina(datos: RutinaCrearSimple, usuario: Usuario = Depends(get_curren
         "descripcion": datos.descripcion,
         "nivel": datos.nivel,
         "usuarioId": usuario.id,
-        "ejerciciosIds": datos.ejerciciosIds       
-    }    
-    
+        "ejercicios": [e.model_dump() for e in datos.ejercicios]
+    }
+
     nueva_rutina = repo_rutinas.crear(sesion, nuevos_datos)
     sesion.close()
     return nueva_rutina
+
+@router.put("/api/rutinas/{id}", tags=["Rutina"], response_model=RutinaRespuesta)
+def actualizar_rutina(id: int, datos: RutinaCrearSimple, usuario: Usuario = Depends(get_current_user)):
+    sesion = SessionLocal()
+
+    rutina_existente = repo_rutinas.obtener_por_id(sesion, id)
+    if rutina_existente is None:
+        sesion.close()
+        raise HTTPException(status_code=404, detail="Rutina no encontrada")
+    if rutina_existente.usuarioId != usuario.id:
+        sesion.close()
+        raise HTTPException(status_code=403, detail="No puedes editar una rutina de otro usuario")
+
+    nuevos_datos = {
+        "nombre": datos.nombre,
+        "descripcion": datos.descripcion,
+        "nivel": datos.nivel,
+        "ejercicios": [e.model_dump() for e in datos.ejercicios]
+    }
+
+    rutina_actualizada = repo_rutinas.actualizar(sesion, id, nuevos_datos)
+    sesion.close()
+    return rutina_actualizada

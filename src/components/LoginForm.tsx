@@ -20,10 +20,8 @@ export const LoginForm = ({ onLogin, onSwitchToRegister }: LoginFormProps) => {
   const { toast } = useToast();
   const { setUser } = useUser();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!email || !password) {
+  const iniciarSesion = async (emailLogin: string, passwordLogin: string) => {
+    if (!emailLogin || !passwordLogin) {
       toast({
         title: "Error",
         description: "Por favor completa todos los campos",
@@ -38,7 +36,7 @@ export const LoginForm = ({ onLogin, onSwitchToRegister }: LoginFormProps) => {
       const res = await fetch(`${API_URL}/usuarios/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, contrasena: password }),
+        body: JSON.stringify({ email: emailLogin, contrasena: passwordLogin }),
       });
 
       if (!res.ok) {
@@ -76,6 +74,15 @@ export const LoginForm = ({ onLogin, onSwitchToRegister }: LoginFormProps) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await iniciarSesion(email, password);
+  };
+
+  const handleDemoLogin = async () => {
+    await iniciarSesion("demo@eltrainer.app", "demo1234");
   };
 
   return (
@@ -119,10 +126,22 @@ export const LoginForm = ({ onLogin, onSwitchToRegister }: LoginFormProps) => {
               type="submit"
               className="w-full bg-fitness-orange hover:bg-fitness-orange-light text-white"
               size="lg"
+              disabled={loading}
             >
               Entrar
             </Button>
           </form>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full mt-3"
+            size="lg"
+            onClick={handleDemoLogin}
+            disabled={loading}
+          >
+            Entrar como demo
+          </Button>
 
           <div className="text-center mt-6">
             <p className="text-sm text-muted-foreground">

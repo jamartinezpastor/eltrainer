@@ -20,6 +20,7 @@ App de rutinas de entrenamiento que une un frontend **React** con un backend **P
 - **Backend** (`back/`): FastAPI con arquitectura en capas — `routers/` (endpoints) → `repositories/` (acceso a datos) → `models/` (SQLAlchemy) + `schemas/` (Pydantic). Documentación interactiva autogenerada con **Swagger** en `/docs`.
 - **Autenticación**: el login devuelve un JWT firmado (`services/auth_service.py`, passlib + bcrypt para las contraseñas); el frontend lo envía en la cabecera `Authorization: Bearer <token>` en las rutas protegidas.
 - **Base de datos**: SQLite vía SQLAlchemy (`back/db.py`). Las tablas se crean automáticamente al arrancar si no existen.
+- **Catálogo de ejercicios**: se puebla desde [exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset) (1.324 ejercicios con GIF) mediante `back/scripts/importar_ejercicios.py`. En Docker, `back/entrypoint.sh` lo ejecuta automáticamente en el primer arranque si detecta la tabla de ejercicios vacía (ver sección de deploy).
 
 ## Cómo se conectan
 
@@ -51,15 +52,19 @@ No hace falta configurar nada más: el frontend apunta por defecto al backend lo
 
 Ver [.env.example](.env.example). Todas son opcionales en desarrollo:
 
-| Variable | Lado | Descripción |
-|---|---|---|
+| Variable       | Lado     | Descripción                                                  |
+| -------------- | -------- | ------------------------------------------------------------ |
 | `VITE_API_URL` | Frontend | URL base de la API (por defecto `http://127.0.0.1:8000/api`) |
-| `SECRET_KEY` | Backend | Clave de firma de los JWT |
-| `CORS_ORIGINS` | Backend | Orígenes permitidos, separados por comas |
-| `DATABASE_URL` | Backend | Conexión SQLAlchemy (por defecto SQLite local) |
+| `SECRET_KEY`   | Backend  | Clave de firma de los JWT                                    |
+| `CORS_ORIGINS` | Backend  | Orígenes permitidos, separados por comas                     |
+| `DATABASE_URL` | Backend  | Conexión SQLAlchemy (por defecto SQLite local)               |
 
 ## Stack
 
 - **Frontend**: Vite, React 18, TypeScript, shadcn/ui, Tailwind CSS, GSAP
 - **Backend**: Python, FastAPI, SQLAlchemy, Pydantic, python-jose (JWT), passlib/bcrypt, Uvicorn
 - **Base de datos**: SQLite
+
+## Media Attribution & License
+
+El catálogo de ejercicios (nombres, grupos musculares y GIFs) proviene de [exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset). El código y los datos de ese repositorio están bajo licencia MIT; los GIFs e imágenes son propiedad de © Gym visual — https://gymvisual.com/ y requieren mantener esta atribución.

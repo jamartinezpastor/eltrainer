@@ -2,10 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Play } from "lucide-react";
+import { ArrowLeft, Pencil, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { API_URL } from "@/lib/apiConfig";
+import { useUser } from "@/hooks/UserContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Ejercicio {
   id: number;
@@ -13,6 +20,7 @@ interface Ejercicio {
   grupoMuscular: string;
   series: number;
   repeticiones: number;
+  gif_url: string;
 }
 interface UserRutina {
   id: number;
@@ -26,15 +34,18 @@ interface UserRutina {
 interface RoutineDetailProps {
   routineId: string;
   onBack: () => void;
+  onEdit: (id: string) => void;
 }
 
-export const RoutineDetail = ({ routineId, onBack }: RoutineDetailProps) => {
+export const RoutineDetail = ({ routineId, onBack, onEdit }: RoutineDetailProps) => {
   const { toast, dismiss } = useToast();
+  const { user } = useUser();
   const [rutina, setRutina] = useState<UserRutina | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const startTimeRef = useRef<number | null>(null);
   const toastIdRef = useRef<string | null>(null);
+  const [ejercicioSeleccionado, setEjercicioSeleccionado] = useState<Ejercicio | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -138,9 +149,15 @@ export const RoutineDetail = ({ routineId, onBack }: RoutineDetailProps) => {
         <Button variant="ghost" size="icon" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+        <h2 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent flex-1">
           {rutina.nombre}
         </h2>
+        {user && rutina.usuarioId === user.id && (
+          <Button variant="outline" size="sm" onClick={() => onEdit(routineId)}>
+            <Pencil className="h-4 w-4 mr-1" />
+            Editar
+          </Button>
+        )}
       </div>
 
       {/* Routine Info Card */}
@@ -158,17 +175,28 @@ export const RoutineDetail = ({ routineId, onBack }: RoutineDetailProps) => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="flex items-start gap-2 md:col-span-3">
-              <ul className="text-xs text-muted-foreground list-disc pl-4">
-                {rutina.ejercicios?.map((e) => (
-                  <li key={e.id}>
-                    <b>{e.nombre}</b> — Grupo muscular {e.grupoMuscular} –{" "}
-                    {e.series} series de {e.repeticiones} repeticiones
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+            {rutina.ejercicios?.map((e) => (
+              <button
+                key={e.id}
+                type="button"
+                onClick={() => setEjercicioSeleccionado(e)}
+                className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30 hover:bg-muted/60 transition-colors text-left"
+              >
+                <img
+                  src={e.gif_url}
+                  alt={e.nombre}
+                  loading="lazy"
+                  className="w-14 h-14 rounded-md object-cover shrink-0 bg-background"
+                />
+                <div className="min-w-0">
+                  <div className="font-medium truncate">{e.nombre}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {e.grupoMuscular} · {e.series} series de {e.repeticiones} repeticiones
+                  </div>
+                </div>
+              </button>
+            ))}
           </div>
 
           <Button
@@ -181,6 +209,30 @@ export const RoutineDetail = ({ routineId, onBack }: RoutineDetailProps) => {
           </Button>
         </CardContent>
       </Card>
+
+      <Dialog
+        open={ejercicioSeleccionado !== null}
+        onOpenChange={(open) => !open && setEjercicioSeleccionado(null)}
+      >
+        <DialogContent className="max-w-md">
+          {ejercicioSeleccionado && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{ejercicioSeleccionado.nombre}</DialogTitle>
+              </DialogHeader>
+              <img
+                src={ejercicioSeleccionado.gif_url}
+                alt={ejercicioSeleccionado.nombre}
+                className="w-full rounded-md bg-muted"
+              />
+              <p className="text-sm text-muted-foreground">
+                {ejercicioSeleccionado.grupoMuscular} · {ejercicioSeleccionado.series} series de{" "}
+                {ejercicioSeleccionado.repeticiones} repeticiones
+              </p>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -11,9 +11,25 @@ class Rutina(Base):
     nivel = Column(String(30), nullable=False)           
     
     usuarioId = Column(Integer, ForeignKey("usuarios.id"))
-    
+
     usuario = relationship("Usuario", back_populates="rutinas")
-    ejercicios = relationship("Ejercicio", secondary="rutina_ejercicio", back_populates="rutinas", lazy="joined")
+    ejercicios_rutina = relationship(
+        "RutinaEjercicio", back_populates="rutina", cascade="all, delete-orphan", lazy="joined"
+    )
     
+    @property
+    def ejercicios(self):
+        return [
+            {
+                "id": re.ejercicio.id,
+                "nombre": re.ejercicio.nombre,
+                "grupoMuscular": re.ejercicio.grupoMuscular,
+                "gif_url": re.ejercicio.gif_url,
+                "series": re.series,
+                "repeticiones": re.repeticiones,
+            }
+            for re in self.ejercicios_rutina
+        ]
+
     def __repr__(self):
         return f"{self.id},{self.nombre}, {self.descripcion}{self.nivel}, {self.usuarioId}"

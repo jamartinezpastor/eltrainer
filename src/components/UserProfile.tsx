@@ -24,6 +24,7 @@ interface Ejercicio {
   grupoMuscular: string;
   series: number;
   repeticiones: number;
+  gif_url: string;
 }
 
 interface UserRutina {
